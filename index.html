@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CRICLIVE_03 — QUALITY CONTROL</title>
+<link href="<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.min.js"></script>
+<style>
+:root {
+  --bg:#0a0f0b; --surf:#121a14; --surf2:#1a261d; --bdr:#2d4233;
+  --acc:#1a8c35; --acc2:#d42b2b; --txt:#e6f0e8; --muted:#8ba391;
+  --font-main: 'Orbitron', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:15px 28px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-family:var(--font-main);font-size:22px;letter-spacing:2px}
+.brand span{color:var(--acc)}
+.wrap{max-width:1440px;margin:20px auto;padding:0 20px}
+.live-layout { display:grid; grid-template-columns:1fr 340px; gap:24px; }
+.player-card{background:#000;border:1px solid var(--bdr);border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+.video-wrap{width:100%;aspect-ratio:16/9;background:#000;position:relative}
+video{width:100%;height:100%}
+
+/* Quality Menu Styles */
+.controls-overlay {
+  position: absolute; bottom: 10px; right: 10px; z-index: 10;
+}
+#quality-regulator {
+  background: rgba(26, 140, 53, 0.8); color: white; border: none;
+  font-family: var(--font-main); font-size: 10px; padding: 5px 10px;
+  border-radius: 4px; cursor: pointer; outline: none;
+}
+#quality-regulator:hover { background: var(--acc); }
+
+.player-infobar { padding:20px; background: var(--surf); border-top: 1px solid var(--bdr); }
+#current-ch-name { font-family: var(--font-main); font-size: 22px; margin-bottom: 4px; color: var(--acc); }
+.ch-meta { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+.channels-section { background:var(--surf); border:1px solid var(--bdr); border-radius:12px; overflow:hidden; }
+.ch-list-head { padding:16px; background:var(--surf2); border-bottom:1px solid var(--bdr); font-family: var(--font-main); font-size: 13px; font-weight: 700; }
+.ch-row { display:flex; align-items:center; gap:15px; padding:15px; border-bottom:1px solid var(--surf2); cursor:pointer; }
+.ch-row.active { background:rgba(26,140,53,0.15); border-left: 4px solid var(--acc); }
+.ch-row-art { width:40px; height:40px; background:var(--bg); border-radius:8px; display:flex; align-items:center; justify-content:center; }
+
+@media(max-width:1024px) { .live-layout { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">CRIC<span>LOUNGE_</span></div>
+</header>
+
+<div class="wrap">
+  <div class="live-layout">
+    <div class="player-section">
+      <div class="player-card">
+        <div class="video-wrap">
+          <video id="video" controls autoplay></video>
+          <!-- Quality Switcher -->
+          <div class="controls-overlay">
+            <select id="quality-regulator">
+              <option value="auto">AUTO_QUALITY</option>
+            </select>
+          </div>
+        </div>
+        <div class="player-infobar">
+          <h2 id="current-ch-name">LOADING_STREAM...</h2>
+          <p class="ch-meta">Broadcast: Adaptive Bitrate // ClearKey Active</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="channels-section">
+      <div class="ch-list-head">LIVE_FEED</div>
+      <div class="ch-list" id="channel-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const CHANNELS = [
+    { 
+        id: 1, 
+        name: "CRICBUZZ 2", 
+        url: "https://ev-fast-mpd.starzplayarabia.com/live/eds/Criclife_3/DASH/Criclife_3.mpd", 
+        key: "4e8b5ddac5332a4e66c002b4c0f22322:d06de29b0eacb81ac6e3f325849047e8",
+        icon:"🏏"
+    },
+{ 
+        id: 2, 
+        name: "TAMASHA PRO", 
+        url: "https://tencentcdn5.tamashaweb.com/v1/0196159eeff41eb4611d121c76c781/0196159f51bb1ea5064913eb2a83ea/TMSH_U1_WEB.m3u8?timeshift=1&delay=1800&mode=6", 
+        key: "null",
+        icon:"🏏"
+    }
+  ];
+
+  let player;
+
+  async function initPlayer() {
+    shaka.polyfill.installAll();
+    const video = document.getElementById('video');
+    player = new shaka.Player(video);
+
+    // Update quality list once the stream is loaded
+    player.addEventListener('variantchanged', updateQualityMenu);
+    player.addEventListener('error', (e) => console.error('Shaka Error:', e.detail));
+
+    renderChannels();
+    selectChannel(0);
+
+    // Quality Selection Event
+    document.getElementById('quality-regulator').addEventListener('change', (e) => {
+      const value = e.target.value;
+      if (value === 'auto') {
+        player.configure({ abr: { enabled: true } });
+      } else {
+        player.configure({ abr: { enabled: false } });
+        const trackId = parseInt(value);
+        const tracks = player.getVariantTracks();
+        const selectedTrack = tracks.find(t => t.id === trackId);
+        player.selectVariantTrack(selectedTrack, true);
+      }
+    });
+  }
+
+  async function selectChannel(index) {
+    const ch = CHANNELS[index];
+    if (ch.key && ch.key.includes(':')) {
+      const [kid, key] = ch.key.split(':');
+      player.configure({ drm: { clearKeys: { [kid]: key } } });
+    }
+
+    try {
+      await player.load(ch.url);
+      document.getElementById('current-ch-name').innerText = ch.name;
+      
+      // Populate Quality Menu initially
+      updateQualityMenu();
+
+      document.querySelectorAll('.ch-row').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
+    } catch (e) {
+      console.error('Load failed:', e);
+    }
+  }
+
+  function updateQualityMenu() {
+    const menu = document.getElementById('quality-regulator');
+    const tracks = player.getVariantTracks();
+    
+    // Sort tracks by height (e.g., 1080p down to 144p)
+    tracks.sort((a, b) => b.height - a.height);
+
+    // Clear and rebuild menu (keep Auto)
+    menu.innerHTML = '<option value="auto">AUTO_QUALITY</option>';
+    
+    tracks.forEach(track => {
+      if (track.height) {
+        const option = document.createElement('option');
+        option.value = track.id;
+        option.innerText = `${track.height}p (${(track.bandwidth / 1000000).toFixed(1)} Mbps)`;
+        menu.appendChild(option);
+      }
+    });
+  }
+
+  function renderChannels() {
+    const container = document.getElementById('channel-list');
+    container.innerHTML = CHANNELS.map((ch, index) => `
+      <div class="ch-row" onclick="selectChannel(${index})">
+        <div class="ch-row-art">${ch.icon}</div>
+        <div class="ch-name" style="font-family:'Orbitron'; font-size:14px;">${ch.name}</div>
+      </div>
+    `).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', initPlayer);
+</script>
+
+</body>
+</html>
+
