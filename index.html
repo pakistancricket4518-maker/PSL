@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>CRICLIVE_03 — QUALITY CONTROL</title>
-<link href="<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+<title>CRICLONGE — QUALITY CONTROL</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.min.js"></script>
 <style>
 :root {
   --bg:#0a0f0b; --surf:#121a14; --surf2:#1a261d; --bdr:#2d4233;
   --acc:#1a8c35; --acc2:#d42b2b; --txt:#e6f0e8; --muted:#8ba391;
-  --font-main: 'Orbitron', sans-serif;
+  --font-main: 'Poppins', sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--txt);font-family:'Poppins',sans-serif;font-weight:700;min-height:100vh;overflow-x:hidden}
 header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:15px 28px;display:flex;justify-content:space-between;align-items:center}
 .brand{font-family:var(--font-main);font-size:22px;letter-spacing:2px}
 .brand span{color:var(--acc)}
@@ -42,7 +42,22 @@ video{width:100%;height:100%}
 .ch-list-head { padding:16px; background:var(--surf2); border-bottom:1px solid var(--bdr); font-family: var(--font-main); font-size: 13px; font-weight: 700; }
 .ch-row { display:flex; align-items:center; gap:15px; padding:15px; border-bottom:1px solid var(--surf2); cursor:pointer; }
 .ch-row.active { background:rgba(26,140,53,0.15); border-left: 4px solid var(--acc); }
-.ch-row-art { width:40px; height:40px; background:var(--bg); border-radius:8px; display:flex; align-items:center; justify-content:center; }
+
+/* Logo Container Styles - Background Removed */
+.ch-row-art { 
+  width:40px; 
+  height:40px; 
+  background:transparent; 
+  display:flex; 
+  align-items:center; 
+  justify-content:center;
+  overflow: hidden;
+}
+.ch-row-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
 
 @media(max-width:1024px) { .live-layout { grid-template-columns:1fr; } }
 </style>
@@ -50,7 +65,7 @@ video{width:100%;height:100%}
 <body>
 
 <header>
-  <div class="brand">CRIC<span>LOUNGE_</span></div>
+  <div class="brand">CRIC<span>LOUNGE</span></div>
 </header>
 
 <div class="wrap">
@@ -68,7 +83,7 @@ video{width:100%;height:100%}
         </div>
         <div class="player-infobar">
           <h2 id="current-ch-name">LOADING_STREAM...</h2>
-          <p class="ch-meta">Broadcast: Adaptive Bitrate // ClearKey Active</p>
+          <p class="ch-meta">Pakistan Super League 2026</p>
         </div>
       </div>
     </div>
@@ -84,18 +99,54 @@ video{width:100%;height:100%}
   const CHANNELS = [
     { 
         id: 1, 
-        name: "CRICBUZZ 2", 
+        name: "CricBuzz 2 (Worldwide)", 
         url: "https://ev-fast-mpd.starzplayarabia.com/live/eds/Criclife_3/DASH/Criclife_3.mpd", 
         key: "4e8b5ddac5332a4e66c002b4c0f22322:d06de29b0eacb81ac6e3f325849047e8",
-        icon:"🏏"
+        logo: "https://eapi.pcloud.com/getpubthumb?code=XZU0xKZ4ji5BkAs5rSuAFxyluOKfJEmnrkX&linkpassword=&size=850x276&crop=0&type=auto"
     },
 { 
         id: 2, 
-        name: "TAMASHA PRO", 
+        name: "High Bitrate Stream (Worldwide)", 
+        url: "https://psl.bigbaat.app/out/v1/f342445c31dd475bbf30c7304dbad14f/index.m3u8", 
+        key: "null",
+        logo: "https://eapi.pcloud.com/getpubthumb?code=XZnKkvZzlzsJg3FrQLNpWbMc0YmDV3bzWWV&linkpassword=&size=2460x816&crop=0&type=auto" 
+    },
+    { 
+        id: 3, 
+        name: "Tamasha Pro English (PAK)", 
         url: "https://tencentcdn5.tamashaweb.com/v1/0196159eeff41eb4611d121c76c781/0196159f51bb1ea5064913eb2a83ea/TMSH_U1_WEB.m3u8?timeshift=1&delay=1800&mode=6", 
         key: "null",
-        icon:"🏏"
+        logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto" 
+    },
+{ 
+        id: 4, 
+        name: "Tamasha Pro Urdu (PAK)", 
+        url: "https://alibabacdn11.tamashaweb.com/alibaba11/alibaba11stream_alibaba-11.m3u8?aliyunols=on&lhs_playback_mode=1&lhs_start_unix_s_0=1775230800", 
+        key: "null",
+        logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto" 
+    },
+{ 
+        id: 5, 
+        name: "Ten Sports (PAK)", 
+        url: "https://tapmadlive.akamaized.net/tapmadold/tensports.smil/playlist.m3u8", 
+        key: "null",
+        logo: "https://eapi.pcloud.com/getpubthumb?code=XZbQSwZsoPpvwKp48bVzqA3dWFkzJi7ybLX&linkpassword=undefined&size=1000x219&crop=0&type=auto" 
+    },
+{ 
+        id: 6, 
+        name: "ESPN (AUS VPN)", 
+        url: "https://live1-761f422bb93edb7b.fastly./out/v1/adbaa04bfe5441199a037b7a78e6e62a/index.mpd", 
+        key: "4fd27d05c1bd43e88496c9c89770faaf:1b53ff84f9fefe4266920ec38376b9c1",
+        logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn44tRBP25APwLvpWnRekeFAXNlW_IDQrMCNYX5qnzdAnRGfyyRXO6YRnV9j-sk3wOg.png" 
+    },
+{ 
+        id: 6, 
+        name: "ESPN 2 (AUS VPN)", 
+        url: "https://live1-814bffb9b389f652-cf.foxtelgroupcdn.net.au/out/v1/4a34a24349314cc3a1e84ee31bf3d224/index.mpd", 
+        key: "ad04e6d2bdb54dc2a35237ab66e0f29e:78d37cc16c351190ed202758adf417f3",
+        logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn44tRBP25APwLvpWnRekeFAXNlW_IDQrMCNYX5qnzdAnRGfyyRXO6YRnV9j-sk3wOg.png" 
     }
+    
   ];
 
   let player;
@@ -105,14 +156,12 @@ video{width:100%;height:100%}
     const video = document.getElementById('video');
     player = new shaka.Player(video);
 
-    // Update quality list once the stream is loaded
     player.addEventListener('variantchanged', updateQualityMenu);
     player.addEventListener('error', (e) => console.error('Shaka Error:', e.detail));
 
     renderChannels();
     selectChannel(0);
 
-    // Quality Selection Event
     document.getElementById('quality-regulator').addEventListener('change', (e) => {
       const value = e.target.value;
       if (value === 'auto') {
@@ -137,8 +186,6 @@ video{width:100%;height:100%}
     try {
       await player.load(ch.url);
       document.getElementById('current-ch-name').innerText = ch.name;
-      
-      // Populate Quality Menu initially
       updateQualityMenu();
 
       document.querySelectorAll('.ch-row').forEach((el, i) => {
@@ -152,11 +199,7 @@ video{width:100%;height:100%}
   function updateQualityMenu() {
     const menu = document.getElementById('quality-regulator');
     const tracks = player.getVariantTracks();
-    
-    // Sort tracks by height (e.g., 1080p down to 144p)
     tracks.sort((a, b) => b.height - a.height);
-
-    // Clear and rebuild menu (keep Auto)
     menu.innerHTML = '<option value="auto">AUTO_QUALITY</option>';
     
     tracks.forEach(track => {
@@ -173,8 +216,10 @@ video{width:100%;height:100%}
     const container = document.getElementById('channel-list');
     container.innerHTML = CHANNELS.map((ch, index) => `
       <div class="ch-row" onclick="selectChannel(${index})">
-        <div class="ch-row-art">${ch.icon}</div>
-        <div class="ch-name" style="font-family:'Orbitron'; font-size:14px;">${ch.name}</div>
+        <div class="ch-row-art">
+            <img src="${ch.logo}" alt="${ch.name} logo">
+        </div>
+        <div class="ch-name" style="font-size:14px;">${ch.name}</div>
       </div>
     `).join('');
   }
@@ -184,4 +229,3 @@ video{width:100%;height:100%}
 
 </body>
 </html>
-
