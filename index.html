@@ -2,64 +2,164 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>CRICLONGE — QUALITY CONTROL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>CRICLOUNGE — QUALITY CONTROL</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.min.js"></script>
+
+<!-- Video.js Base -->
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+<!-- HLS/Dash Support -->
+<script src="https://cdn.jsdelivr.net/npm/videojs-contrib-eme@5.0.1/dist/videojs-contrib-eme.min.js"></script>
+
 <style>
 :root {
-  --bg:#0a0f0b; --surf:#121a14; --surf2:#1a261d; --bdr:#2d4233;
-  --acc:#1a8c35; --acc2:#d42b2b; --txt:#e6f0e8; --muted:#8ba391;
+  --bg: #0a0f0b; 
+  --surf: rgba(18, 26, 20, 0.75); 
+  --surf2: rgba(26, 38, 29, 0.5); 
+  --bdr: rgba(45, 66, 51, 0.6);
+  --acc: #1a8c35; 
+  --acc2: #d42b2b; 
+  --txt: #e6f0e8; 
+  --muted: #8ba391;
   --font-main: 'Poppins', sans-serif;
+  --glass-blur: blur(12px) saturate(160%);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:'Poppins',sans-serif;font-weight:700;min-height:100vh;overflow-x:hidden}
-header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:15px 28px;display:flex;justify-content:space-between;align-items:center}
-.brand{font-family:var(--font-main);font-size:22px;letter-spacing:2px}
-.brand span{color:var(--acc)}
-.wrap{max-width:1440px;margin:20px auto;padding:0 20px}
-.live-layout { display:grid; grid-template-columns:1fr 340px; gap:24px; }
-.player-card{background:#000;border:1px solid var(--bdr);border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
-.video-wrap{width:100%;aspect-ratio:16/9;background:#000;position:relative}
-video{width:100%;height:100%}
 
-/* Quality Menu Styles */
-.controls-overlay {
-  position: absolute; bottom: 10px; right: 10px; z-index: 10;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  background-image: 
+    radial-gradient(circle at 50% -10%, #1a3a22 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, #0d1a0f 0%, transparent 30%);
+  color: var(--txt);
+  font-family: var(--font-main);
+  font-weight: 700;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
-#quality-regulator {
-  background: rgba(26, 140, 53, 0.8); color: white; border: none;
-  font-family: var(--font-main); font-size: 10px; padding: 5px 10px;
-  border-radius: 4px; cursor: pointer; outline: none;
+
+header {
+  background: var(--surf);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: var(--glass-border);
+  padding: 15px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky; top: 0; z-index: 100;
 }
-#quality-regulator:hover { background: var(--acc); }
 
-.player-infobar { padding:20px; background: var(--surf); border-top: 1px solid var(--bdr); }
-#current-ch-name { font-family: var(--font-main); font-size: 22px; margin-bottom: 4px; color: var(--acc); }
-.ch-meta { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.brand { font-size: 22px; letter-spacing: 2px; }
+.brand span { color: var(--acc); text-shadow: 0 0 15px rgba(26, 140, 53, 0.4); }
 
-.channels-section { background:var(--surf); border:1px solid var(--bdr); border-radius:12px; overflow:hidden; }
-.ch-list-head { padding:16px; background:var(--surf2); border-bottom:1px solid var(--bdr); font-family: var(--font-main); font-size: 13px; font-weight: 700; }
-.ch-row { display:flex; align-items:center; gap:15px; padding:15px; border-bottom:1px solid var(--surf2); cursor:pointer; }
-.ch-row.active { background:rgba(26,140,53,0.15); border-left: 4px solid var(--acc); }
+.wrap { max-width: 1440px; margin: 20px auto; padding: 0 20px; }
+.live-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
 
-/* Logo Container Styles - Background Removed */
-.ch-row-art { 
-  width:40px; 
-  height:40px; 
-  background:transparent; 
-  display:flex; 
-  align-items:center; 
-  justify-content:center;
+.player-card, .channels-section {
+  background: var(--surf);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: 20px;
   overflow: hidden;
-}
-.ch-row-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  position: relative;
 }
 
-@media(max-width:1024px) { .live-layout { grid-template-columns:1fr; } }
+.video-wrap {
+  width: 100%; aspect-ratio: 16/9; background: #000;
+  position: relative; overflow: hidden;
+}
+
+.video-js { width: 100%; height: 100%; font-family: var(--font-main); }
+
+.vjs-fullscreen video { 
+  object-fit: contain; 
+  width: 100vw !important; 
+  height: 100vh !important;
+}
+
+.vjs-stretch video { object-fit: fill !important; }
+.vjs-zoom video { object-fit: cover !important; }
+.vjs-padded video { transform: scale(0.9); }
+
+.vjs-big-play-button { background-color: var(--acc) !important; border: none !important; border-radius: 50% !important; width: 2em !important; height: 2em !important; line-height: 2em !important; margin-top: -1em !important; margin-left: -1em !important; }
+
+/* Controls Overlay with Transition */
+.controls-overlay { 
+  position: absolute; 
+  top: 15px; 
+  right: 15px;
+  z-index: 2147483647; 
+  display: flex;
+  gap: 8px;
+  padding-right: env(safe-area-inset-right);
+  padding-top: env(safe-area-inset-top);
+  transition: opacity 0.4s ease, visibility 0.4s;
+  opacity: 1;
+  visibility: visible;
+}
+
+.controls-overlay.vjs-hidden-custom {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.controls-overlay select {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: var(--font-main);
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  text-transform: uppercase;
+}
+
+#pad-regulator, #aspect-regulator { display: none; }
+
+.vjs-fullscreen #pad-regulator, 
+.vjs-fullscreen #aspect-regulator { display: block; }
+
+.player-infobar { padding: 24px; background: rgba(0,0,0,0.25); }
+#current-ch-name { font-size: 24px; margin-bottom: 4px; color: var(--txt); }
+.ch-meta { font-size: 11px; color: var(--acc); letter-spacing: 2px; opacity: 0.8; }
+
+.ch-list-head { padding: 12px 20px; background: var(--surf2); border-bottom: var(--glass-border); font-size: 12px; }
+.ch-list { overflow-y: auto; max-height: 480px; }
+.ch-list::-webkit-scrollbar { width: 4px; }
+.ch-list::-webkit-scrollbar-thumb { background: var(--acc); border-radius: 10px; }
+
+.ch-row {
+  display: flex; align-items: center; gap: 15px; padding: 10px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer; transition: all 0.3s ease;
+  border-right: 5px solid transparent;
+}
+
+.ch-row:hover { background: rgba(255, 255, 255, 0.05); }
+.ch-row.active {
+  background: linear-gradient(-90deg, rgba(26, 140, 53, 0.25) 0%, transparent 100%);
+  border-right: 5px solid var(--acc);
+}
+
+.ch-row-art {
+  width: 60px; height: 40px; background: rgba(255,255,255,0.03);
+  border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.ch-row-art img { width: 100%; height: 100%; object-fit: contain; }
+.ch-name { font-size: 13px; flex-grow: 1; }
+
+@media(max-width:1024px) { .live-layout { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -72,22 +172,29 @@ video{width:100%;height:100%}
   <div class="live-layout">
     <div class="player-section">
       <div class="player-card">
-        <div class="video-wrap">
-          <video id="video" controls autoplay></video>
-          <!-- Quality Switcher -->
-          <div class="controls-overlay">
+        <div class="video-wrap" id="v-container">
+          <video id="video-player" class="video-js vjs-default-skin" controls preload="auto" autoplay></video>
+          <div class="controls-overlay" id="custom-controls">
+            <select id="pad-regulator">
+                <option value="none">FIT SCREEN</option>
+                <option value="padded">PADDED</option>
+            </select>
+            <select id="aspect-regulator">
+              <option value="default">ORIGINAL</option>
+              <option value="stretch">STRETCH</option>
+              <option value="zoom">ZOOM 16:9</option>
+            </select>
             <select id="quality-regulator">
-              <option value="auto">AUTO_QUALITY</option>
+              <option value="auto">AUTO QUALITY</option>
             </select>
           </div>
         </div>
         <div class="player-infobar">
-          <h2 id="current-ch-name">LOADING_STREAM...</h2>
+          <h2 id="current-ch-name">SELECT_CHANNEL</h2>
           <p class="ch-meta">Pakistan Super League 2026</p>
         </div>
       </div>
     </div>
-
     <div class="channels-section">
       <div class="ch-list-head">LIVE_FEED</div>
       <div class="ch-list" id="channel-list"></div>
@@ -114,7 +221,7 @@ video{width:100%;height:100%}
 { 
         id: 4, 
         name: "Tamasha Pro Urdu (PAK)", 
-        url: "https://alibabacdn11.tamashaweb.com/alibaba11/alibaba11stream_alibaba-11.m3u8?aliyunols=on&lhs_playback_mode=1&lhs_start_unix_s_0=1775310600", 
+        url: "https://alibabacdn11.tamashaweb.com/alibaba11/alibaba11stream_alibaba-11.m3u8?aliyunols=on&lhs_playback_mode=1&lhs_start_unix_s_0=1775486400", 
         key: "null",
         logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto" 
     },
@@ -143,75 +250,109 @@ video{width:100%;height:100%}
   ];
 
   let player;
+  let hideTimer;
 
-  async function initPlayer() {
-    shaka.polyfill.installAll();
-    const video = document.getElementById('video');
-    player = new shaka.Player(video);
+  function initPlayer() {
+    player = videojs('video-player', {
+      fluid: true,
+      muted: false,
+      html5: { vhs: { overrideNative: true }, nativeAudioTracks: false, nativeVideoTracks: false }
+    });
 
-    player.addEventListener('variantchanged', updateQualityMenu);
-    player.addEventListener('error', (e) => console.error('Shaka Error:', e.detail));
+    player.eme();
+    player.on('loadedmetadata', updateQualityMenu);
+
+    const overlay = document.getElementById('custom-controls');
+
+    const resetTimer = () => {
+      overlay.classList.remove('vjs-hidden-custom');
+      clearTimeout(hideTimer);
+      if (player.isFullscreen()) {
+        hideTimer = setTimeout(() => {
+          overlay.classList.add('vjs-hidden-custom');
+        }, 3000);
+      }
+    };
+
+    // Show on tap/click/any activity
+    player.on('touchstart', resetTimer);
+    player.on('mousedown', resetTimer);
+    player.on('mousemove', resetTimer);
+
+    player.on('fullscreenchange', function() {
+      if (player.isFullscreen()) {
+        player.el().appendChild(overlay);
+        resetTimer();
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      } else {
+        document.getElementById('v-container').appendChild(overlay);
+        overlay.classList.remove('vjs-hidden-custom');
+        clearTimeout(hideTimer);
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+      }
+    });
 
     renderChannels();
     selectChannel(0);
 
     document.getElementById('quality-regulator').addEventListener('change', (e) => {
-      const value = e.target.value;
-      if (value === 'auto') {
-        player.configure({ abr: { enabled: true } });
-      } else {
-        player.configure({ abr: { enabled: false } });
-        const trackId = parseInt(value);
-        const tracks = player.getVariantTracks();
-        const selectedTrack = tracks.find(t => t.id === trackId);
-        player.selectVariantTrack(selectedTrack, true);
+      const levels = player.qualityLevels();
+      for (let i = 0; i < levels.length; i++) {
+        levels[i].enabled = (e.target.value === 'auto' || i === parseInt(e.target.value));
       }
+    });
+
+    document.getElementById('aspect-regulator').addEventListener('change', (e) => {
+      const p = player.el();
+      p.classList.remove('vjs-stretch', 'vjs-zoom');
+      if(e.target.value !== 'default') p.classList.add('vjs-' + e.target.value);
+    });
+
+    document.getElementById('pad-regulator').addEventListener('change', (e) => {
+      const p = player.el();
+      p.classList.toggle('vjs-padded', e.target.value === 'padded');
     });
   }
 
   async function selectChannel(index) {
     const ch = CHANNELS[index];
+    const type = ch.url.includes('.mpd') ? 'application/dash+xml' : 'application/x-mpegURL';
+    let keySystems = {};
     if (ch.key && ch.key.includes(':')) {
       const [kid, key] = ch.key.split(':');
-      player.configure({ drm: { clearKeys: { [kid]: key } } });
+      keySystems['org.w3.clearkey'] = { clearkeys: { [kid.replace(/-/g, '')]: key } };
     }
-
-    try {
-      await player.load(ch.url);
-      document.getElementById('current-ch-name').innerText = ch.name;
-      updateQualityMenu();
-
-      document.querySelectorAll('.ch-row').forEach((el, i) => {
-        el.classList.toggle('active', i === index);
-      });
-    } catch (e) {
-      console.error('Load failed:', e);
-    }
+    player.src({ src: ch.url, type: type, keySystems: keySystems });
+    document.getElementById('current-ch-name').innerText = ch.name;
+    document.querySelectorAll('.ch-row').forEach((el, i) => el.classList.toggle('active', i === index));
+    player.play().catch(() => {});
   }
 
   function updateQualityMenu() {
     const menu = document.getElementById('quality-regulator');
-    const tracks = player.getVariantTracks();
-    tracks.sort((a, b) => b.height - a.height);
-    menu.innerHTML = '<option value="auto">AUTO_QUALITY</option>';
-    
-    tracks.forEach(track => {
-      if (track.height) {
-        const option = document.createElement('option');
-        option.value = track.id;
-        option.innerText = `${track.height}p (${(track.bandwidth / 1000000).toFixed(1)} Mbps)`;
-        menu.appendChild(option);
-      }
-    });
+    const levels = player.qualityLevels();
+    if(levels.length === 0) { setTimeout(updateQualityMenu, 1000); return; }
+    menu.innerHTML = '<option value="auto">AUTO QUALITY</option>';
+    for (let i = 0; i < levels.length; i++) {
+      const lvl = levels[i];
+      const bitrate = lvl.bitrate ? (lvl.bitrate / 1000000).toFixed(1) + ' Mbps' : '';
+      const label = `${lvl.height ? lvl.height + 'p' : 'Level ' + i} ${bitrate ? '['+bitrate+']' : ''}`;
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.innerText = label;
+      menu.appendChild(opt);
+    }
   }
 
   function renderChannels() {
     const container = document.getElementById('channel-list');
     container.innerHTML = CHANNELS.map((ch, index) => `
       <div class="ch-row" onclick="selectChannel(${index})">
-        <div class="ch-row-art">
-            <img src="${ch.logo}" alt="${ch.name} logo">
-        </div>
+        <div class="ch-row-art"><img src="${ch.logo}" alt="${ch.name}"></div>
         <div class="ch-name" style="font-size:14px;">${ch.name}</div>
       </div>
     `).join('');
@@ -219,7 +360,6 @@ video{width:100%;height:100%}
 
   document.addEventListener('DOMContentLoaded', initPlayer);
 </script>
-
 </body>
 </html>
 
