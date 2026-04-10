@@ -79,22 +79,6 @@ header {
   justify-content: center;
 }
 
-.seek-overlay {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2147483647;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 20px;
-  border-radius: 50%;
-  width: 100px; height: 100px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.seek-overlay.active { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-.seek-text { font-size: 14px; color: #fff; margin-top: 5px; }
-
 .clappr-stretch video { object-fit: fill !important; }
 .clappr-zoom video { object-fit: cover !important; }
 .clappr-padded video { transform: scale(0.9); }
@@ -113,35 +97,14 @@ header {
 
 .progress-container {
   position: absolute;
-  bottom: 12px; 
-  left: 12px;
-  right: 12px;
-  width: calc(100% - 24px); 
-  height: 42px; 
-  background: var(--liquid-glass);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: var(--glass-border);
-  border-radius: 12px;
+  bottom: 0; left: 0;
+  width: 100%; height: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   z-index: 2147483647;
   transition: opacity 0.4s ease, visibility 0.4s;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
 }
-
-.progress-track {
-  flex-grow: 1;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  position: relative;
-  transition: height 0.1s;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-container:hover .progress-track { height: 8px; }
 
 .buffer-bar {
   position: absolute;
@@ -162,41 +125,6 @@ header {
   box-shadow: 0 0 10px var(--acc);
   pointer-events: none;
 }
-
-.time-display {
-  font-size: 11px;
-  color: #fff;
-  margin-right: 10px;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  pointer-events: none;
-}
-
-.live-btn {
-  background: var(--liquid-glass);
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(15px) saturate(180%);
-  color: #fff;
-  border: var(--glass-stroke);
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 4px 10px;
-  margin-left: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: var(--font-main);
-  text-transform: uppercase;
-  transition: all 0.2s;
-}
-
-.live-btn:hover {
-  background: var(--acc);
-  border-color: var(--acc);
-  box-shadow: 0 4px 15px rgba(26, 140, 53, 0.3);
-}
-
-.live-btn:active { transform: scale(0.95); }
 
 .controls-overlay select, .fs-btn {
   background: var(--liquid-glass);
@@ -323,11 +251,6 @@ header {
         <div class="video-wrap" id="v-container">
           <div id="buffering-ui" class="buffering-spinner"></div>
           
-          <div id="seek-feedback" class="seek-overlay">
-            <svg id="seek-icon" viewBox="0 0 24 24" width="30" height="30" fill="white"></svg>
-            <div id="seek-val" class="seek-text"></div>
-          </div>
-
           <button id="mid-pause-btn" class="mid-pause-btn" onclick="togglePlayPause()">
             <svg id="play-icon" viewBox="0 0 24 24" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
             <svg id="pause-icon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -347,12 +270,8 @@ header {
           </div>
 
           <div id="playback-bar" class="progress-container">
-            <div class="time-display" id="time-data">0:00 / 0:00</div>
-            <div class="progress-track">
-                <div id="buffer-line" class="buffer-bar"></div>
-                <div id="play-line" class="play-bar"></div>
-            </div>
-            <button id="live-sync-btn" class="live-btn" onclick="goToLive(event)">LIVE</button>
+            <div id="buffer-line" class="buffer-bar"></div>
+            <div id="play-line" class="play-bar"></div>
           </div>
         </div>
         <div class="player-infobar">
@@ -374,34 +293,111 @@ header {
 </div>
 
 <script>
+  /* CHANNELS SETTINGS:
+     - Use 'player: "hls"' or 'player: "shaka"' to play in the player.
+     - Add 'type: "redirect"' and 'url: "YOUR_URL"' to open in a new web page.
+  */
   const CHANNELS = [
-    { id: 2, category: "Pakistan Super League", player: "hls", name: "Tamasha Pro English", url: "https://cdn5aws.tamashaweb.com/out/v1/9fff7780125a4614a7f3567bc506dc7a/index.m3u8?start=1775739600", key: "null", logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto", quality: "UPTO 1080p", fps: "25 FPS", vpn: "PAKISTAN" },
-    { id: 3, category: "Pakistan Super League", player: "hls", name: "Tamasha Pro Urdu", url: "https://cdn6aws.tamashaweb.com/out/v1/33441d8e8a3d4c289551e3fa151d5082/index.m3u8?start=1775652000", key: "null", logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto", quality: "UPTO 1080p", fps: "25 FPS", vpn: "PAKISTAN" },
-    { id: 4, category: "Pakistan Super League", player: "shaka", name: "Ten Sports", url: "https://tapmadlive.akamaized.net/tapmadold/tensports.smil/playlist.m3u8", key: "null", logo: "https://eapi.pcloud.com/getpubthumb?code=XZbQSwZsoPpvwKp48bVzqA3dWFkzJi7ybLX&linkpassword=undefined&size=1000x219&crop=0&type=auto", quality: "UPTO 720p", fps: "25 FPS", vpn: "PAKISTAN" },
-    { id: 5, category: "Pakistan Super League", player: "shaka", name: "ESPN", url: "https://live1-761f422bb93edb7b.fastly.foxtelgroupcdn.net.au/out/v1/adbaa04bfe5441199a037b7a78e6e62a/index.mpd", key: "4fd27d05c1bd43e88496c9c89770faaf:1b53ff84f9fefe4266920ec38376b9c1", logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn44tRBP25APwLvpWnRekeFAXNlW_IDQrMCNYX5qnzdAnRGfyyRXO6YRnV9j-sk3wOg.png", quality: "UPTO 1080p", fps: "50 FPS", vpn: "AUS VPN" },
-    { id: 7, category: "Pakistan Super League", type: "redirect", name: "CricBuzz 2", url: "http://line.hmajtx.top:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1109345&extension=m3u8", logo: "https://eapi.pcloud.com/getpubthumb?code=XZU0xKZ4ji5BkAs5rSuAFxyluOKfJEmnrkX&linkpassword=&size=850x276&crop=0&type=auto", quality: "720p/1080p", fps: "25 FPS", vpn: "Worldwide" },
-    { id: 7, category: "Pakistan Super League", type: "redirect", name: "Willow Sports", url: "http://line.hmajtx.top:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1951120&extension=m3u8" , logo: "https://eapi.pcloud.com/getpubthumb?code=XZB9YKZbvL8U70ec6FsHY8ffWIlMFEJBm4k&linkpassword=undefined&size=900x274&crop=0&type=auto", quality: "1080p", fps: "60 FPS", vpn: "Worldwide" },
-{ id: 1, category: "Pakistan Super League", type: "redirect", name: "Worldwide Stream English", url: "https://psl.bigbaat.app/out/v1/f342445c31dd475bbf30c7304dbad14f/index.m3u8", key: "null", logo: "https://eapi.pcloud.com/getpubthumb?code=XZnKkvZzlzsJg3FrQLNpWbMc0YmDV3bzWWV&linkpassword=&size=2460x816&crop=0&type=auto", quality: "UPTO 1080p", fps: "25 FPS", vpn: "Worldwide" },
- { id: 1, category: "Pakistan Super League", type: "redirect", name: "Worldwide Stream Urdu", url: "https://pslurdu.bigbaat.app/out/v1/0ef369b90c7b4025b76621e46ee5fb70/index.m3u8", key: "null", logo: "https://eapi.pcloud.com/getpubthumb?code=XZnKkvZzlzsJg3FrQLNpWbMc0YmDV3bzWWV&linkpassword=&size=2460x816&crop=0&type=auto", quality: "UPTO 1080p", fps: "25 FPS", vpn: "Worldwide" },
-    { id: 8, category: "Indian Premier League", type: "redirect", name: "Sky Sports Cricket", url: "http://line.hmajtx.top:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1905864&extension=m3u8", logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn2iyNzKkWyCaVtDGlW13Af1t0jZW2ad8Cku7gDOclMphRZLGfTxvcfu4ICS_3k0Q5w.png", quality: "1080P", fps: "50 FPS", vpn: "Worldwide" },
-    { id: 8, category: "Indian Premier League", type: "redirect", name: "Sky Sport NZ 1", url: "http://line.hmajtx.top:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=636918&extension=m3u8", logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn44tRBP25APwLvpWnRekeFDMIk8y3rFZMLR46PSmy78xpMboxuYPtedLmMDg1-YpBg.png", quality: "1080P", fps: "50 FPS", vpn: "Worldwide" },
-    { id: 8, category: "Indian Premier League", type: "redirect", name: "Star Sports 1 Hindi", url: "http://line.trxdnscloud.ru:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1905864&extension=m3u8", logo: "https://eapi.pcloud.com/getpubthumb?code=XZMjuKZSLY5pAb156JNHp6kvutm1kAiTHmk&linkpassword=&size=800x450&crop=0&type=auto", quality: "1080P", fps: "50 FPS", vpn: "Worldwide" },
+    { 
+      id: 1, 
+      category: "Pakistan Super League",
+      player: "hls", 
+      name: "Worldwide Stream", 
+      url: "https://psl.bigbaat.app/out/v1/f342445c31dd475bbf30c7304dbad14f/index.m3u8", 
+      key: "null", 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZnKkvZzlzsJg3FrQLNpWbMc0YmDV3bzWWV&linkpassword=&size=2460x816&crop=0&type=auto",
+      quality: "UPTO 1080p", fps: "25 FPS", vpn: "Worldwide"
+    },
+    { 
+      id: 2, 
+      category: "Pakistan Super League",
+      player: "hls", 
+      name: "Tamasha Pro English", 
+      url: "https://cdn5aws.tamashaweb.com/out/v1/9fff7780125a4614a7f3567bc506dc7a/index.m3u8?start=1775827800", 
+      key: "null", 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto",
+      quality: "UPTO 1080p", fps: "25 FPS", vpn: "PAKISTAN"
+    },
+    { 
+      id: 3, 
+      category: "Pakistan Super League",
+      player: "hls", 
+      name: "Tamasha Pro Urdu", 
+      url: "https://cdn6aws.tamashaweb.com/out/v1/33441d8e8a3d4c289551e3fa151d5082/index.m3u8?start=1775827800", 
+      key: "null", 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZe0TAZ4VUePXYN8rSafbQdahHlB5pkov5V&linkpassword=&size=1828x1828&crop=0&type=auto",
+      quality: "UPTO 1080p", fps: "25 FPS", vpn: "PAKISTAN"
+    },
+    { 
+      id: 4, 
+      category: "Pakistan Super League",
+      player: "hls", 
+      name: "Ten Sports", 
+      url: "https://tapmadlive.akamaized.net/tapmadold/tensports.smil/playlist.m3u8", 
+      key: "null", 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZbQSwZsoPpvwKp48bVzqA3dWFkzJi7ybLX&linkpassword=undefined&size=1000x219&crop=0&type=auto",
+      quality: "UPTO 720p", fps: "25 FPS", vpn: "PAKISTAN"
+    },
+    { 
+      id: 5, 
+      category: "Pakistan Super League",
+      player: "shaka", 
+      name: "ESPN", 
+      url: "https://live1-761f422bb93edb7b.fastly.foxtelgroupcdn.net.au/out/v1/adbaa04bfe5441199a037b7a78e6e62a/index.mpd", 
+      key: "4fd27d05c1bd43e88496c9c89770faaf:1b53ff84f9fefe4266920ec38376b9c1", 
+      logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn44tRBP25APwLvpWnRekeFAXNlW_IDQrMCNYX5qnzdAnRGfyyRXO6YRnV9j-sk3wOg.png",
+      quality: "UPTO 1080p", fps: "50 FPS", vpn: "AUS VPN"
+    },
+    { 
+      id: 7, 
+      category: "Pakistan Super League",
+      type: "redirect", 
+      name: "CricBuzz 2", 
+      url: "http://line.trxdnscloud.ru:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1109345&extension=m3u8", 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZU0xKZ4ji5BkAs5rSuAFxyluOKfJEmnrkX&linkpassword=&size=850x276&crop=0&type=auto",
+      quality: "720p/1080p", fps: "25 FPS", vpn: "Worldwide"
+    },
+{ 
+      id: 7, 
+      category: "Pakistan Super League",
+      type: "redirect", 
+      name: "Willow Sports", 
+      url: "http://line.trxdnscloud.ru:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1951120&extension=m3u8" , 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZB9YKZbvL8U70ec6FsHY8ffWIlMFEJBm4k&linkpassword=undefined&size=900x274&crop=0&type=auto",
+      quality: "1080p", fps: "60 FPS", vpn: "Worldwide"
+    },
+{
+      id: 8,
+      category: "Indian Premier League",
+      type: "redirect",
+      name: "Sky Sports Cricket",
+      url: "http://line.trxdnscloud.ru:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1905864&extension=m3u8", 
+      logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn2iyNzKkWyCaVtDGlW13Af1t0jZW2ad8Cku7gDOclMphRZLGfTxvcfu4ICS_3k0Q5w.png",
+      quality: "1080P", fps: "50 FPS", vpn: "Worldwide"
+    },
+{
+      id: 8,
+      category: "Indian Premier League",
+      type: "redirect",
+      name: "Sky Sport NZ 1",
+      url: "http://line.trxdnscloud.ru:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=636918&extension=m3u8", 
+      logo: "https://images.channel5.eu/eGqxKQFYBvdaZ1gtJTHXn44tRBP25APwLvpWnRekeFDMIk8y3rFZMLR46PSmy78xpMboxuYPtedLmMDg1-YpBg.png",
+      quality: "1080P", fps: "50 FPS", vpn: "Worldwide"
+    },
+{
+      id: 8,
+      category: "Indian Premier League",
+      type: "redirect",
+      name: "Star Sports 1 Hindi",
+      url: "http://line.trxdnscloud.ru:80/play/live.php?mac=00:1A:79:A3:BE:B0&stream=1905864&extension=m3u8", 
+      logo: "https://eapi.pcloud.com/getpubthumb?code=XZMjuKZSLY5pAb156JNHp6kvutm1kAiTHmk&linkpassword=&size=800x450&crop=0&type=auto",
+      quality: "1080P", fps: "50 FPS", vpn: "Worldwide"
+    },
   ];
 
   let clapprPlayer, shakaInstance, shakaVideo, uiTimer, hlsInstance;
   let activeCategory = "All";
   let activeChannelIndex = 0;
-  
-  let touchStartX = 0;
-  let touchEndX = 0;
-
-  function formatTime(seconds) {
-    if (!seconds || isNaN(seconds) || !isFinite(seconds)) return "0:00";
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return (h > 0 ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (s < 10 ? "0" : "") + s;
-  }
 
   function togglePlayPause() {
     const isGeneric = document.getElementById('shaka-container').style.display !== 'none';
@@ -422,7 +418,6 @@ header {
     const isGeneric = document.getElementById('shaka-container').style.display !== 'none';
     const playLine = document.getElementById('play-line');
     const bufferLine = document.getElementById('buffer-line');
-    const timeDisplay = document.getElementById('time-data');
     
     let duration, currentTime, bufferEnd = 0;
 
@@ -440,17 +435,15 @@ header {
     } else {
       duration = clapprPlayer.getDuration();
       currentTime = clapprPlayer.getCurrentTime();
-      bufferEnd = (clapprPlayer.getBufferedPercentage() / 100) * duration;
+      bufferEnd = clapprPlayer.getBufferedPercentage() / 100 * duration;
     }
     
     if (duration > 0 && isFinite(duration)) {
       playLine.style.width = (currentTime / duration * 100) + "%";
       bufferLine.style.width = (bufferEnd / duration * 100) + "%";
-      timeDisplay.innerText = formatTime(currentTime) + " / " + formatTime(duration);
     } else {
       playLine.style.width = "100%";
       bufferLine.style.width = "100%";
-      timeDisplay.innerText = "LIVE";
     }
   }
 
@@ -460,16 +453,6 @@ header {
       if (container.requestFullscreen) await container.requestFullscreen();
       if (screen.orientation?.lock) await screen.orientation.lock('landscape').catch(()=>{});
     } else document.exitFullscreen();
-  }
-
-  function goToLive(event) {
-    if (event) event.stopPropagation();
-    const isGeneric = document.getElementById('shaka-container').style.display !== 'none';
-    if (isGeneric) {
-      if (hlsInstance) shakaVideo.currentTime = shakaVideo.duration;
-      else if (shakaInstance) shakaVideo.currentTime = shakaInstance.seekRange().end;
-    } else clapprPlayer.seek(clapprPlayer.getDuration());
-    resetTimer();
   }
 
   function resetTimer() {
@@ -482,6 +465,7 @@ header {
     playBar.classList.remove('ui-hidden');
     
     clearTimeout(uiTimer);
+    
     uiTimer = setTimeout(() => {
       if (document.activeElement.tagName !== 'SELECT') {
         overlay.classList.add('ui-hidden');
@@ -491,38 +475,7 @@ header {
     }, 3000);
   }
 
-  function handleSwipe() {
-    const diff = touchEndX - touchStartX;
-    const threshold = 50; 
-    if (Math.abs(diff) > threshold) {
-      executeSeek(diff > 0 ? 10 : -10);
-    }
-  }
-
-  function executeSeek(seconds) {
-    const isGeneric = document.getElementById('shaka-container').style.display !== 'none';
-    const overlay = document.getElementById('seek-feedback');
-    const icon = document.getElementById('seek-icon');
-    const valText = document.getElementById('seek-val');
-
-    if (isGeneric) {
-        shakaVideo.currentTime += seconds;
-    } else {
-        clapprPlayer.seek(clapprPlayer.getCurrentTime() + seconds);
-    }
-
-    valText.innerText = (seconds > 0 ? "+" : "") + seconds + "s";
-    icon.innerHTML = seconds > 0 
-        ? '<path d="M4 12l8 8V4L4 12zm11-8v16l8-8-8-8z"/>' 
-        : '<path d="M20 12l-8-8v16l8-8zM9 4v16l-8-8 8-8z"/>';
-    
-    overlay.classList.add('active');
-    setTimeout(() => overlay.classList.remove('active'), 600);
-    resetTimer();
-  }
-
-  // UPDATED initPlayer to ensure automatic start
-  async function initPlayer() {
+  function initPlayer() {
     clapprPlayer = new Clappr.Player({
       parentId: "#clappr-player-container",
       source: "",
@@ -531,7 +484,14 @@ header {
       autoPlay: true,
       chromeless: true,
       playback: {
-        hlsjsConfig: { enableLowLatencyMode: true, initialLiveManifestSize: 1, liveSyncDurationCount: 2, maxBufferLength: 30, maxMaxBufferLength: 60 }
+        hlsjsConfig: {
+          enableLowLatencyMode: true,
+          initialLiveManifestSize: 1,
+          liveSyncDurationCount: 2,
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
+          lowLatencyMode: true
+        }
       },
       events: {
         onPlay: () => { document.getElementById('buffering-ui').style.display = 'none'; updatePauseIcons(); resetTimer(); },
@@ -543,7 +503,15 @@ header {
 
     shakaVideo = document.getElementById('shaka-video');
     shakaInstance = new shaka.Player(shakaVideo);
-    shakaInstance.configure({ streaming: { bufferingGoal: 30, rebufferingGoal: 0.5, bufferBehind: 30, lowLatencyMode: true } });
+    
+    shakaInstance.configure({
+      streaming: {
+        bufferingGoal: 30,
+        rebufferingGoal: 0.5,
+        bufferBehind: 30,
+        lowLatencyMode: true
+      }
+    });
     
     shakaVideo.addEventListener('timeupdate', updateProgress);
     setInterval(updateProgress, 500);
@@ -552,41 +520,33 @@ header {
     shakaVideo.onwaiting = () => spinner.style.display = 'block';
     shakaVideo.onplaying = () => { spinner.style.display = 'none'; updatePauseIcons(); resetTimer(); };
     
-    const container = document.getElementById('v-container');
-    
-    container.addEventListener('click', () => resetTimer());
-
-    container.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, {passive: true});
-
-    container.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, {passive: true});
+    document.getElementById('v-container').addEventListener('mousedown', (e) => {
+      resetTimer();
+    });
 
     document.getElementById('playback-bar').addEventListener('click', (e) => {
-      e.stopPropagation();
       const isGeneric = document.getElementById('shaka-container').style.display !== 'none';
       const rect = e.currentTarget.getBoundingClientRect();
       const pos = (e.clientX - rect.left) / rect.width;
+
       if (isGeneric) {
-        let dur = shakaVideo.duration;
-        if (shakaInstance && !hlsInstance) dur = shakaInstance.seekRange().end;
-        if (dur > 0 && isFinite(dur)) shakaVideo.currentTime = pos * dur;
+        let duration = shakaVideo.duration;
+        if (shakaInstance && !hlsInstance) {
+          duration = shakaInstance.seekRange().end;
+        }
+        if (duration > 0 && isFinite(duration)) {
+          shakaVideo.currentTime = pos * duration;
+        }
       } else {
-        const dur = clapprPlayer.getDuration();
-        if (dur > 0) clapprPlayer.seek(pos * dur);
+        const duration = clapprPlayer.getDuration();
+        if (duration > 0) {
+          clapprPlayer.seek(pos * duration);
+        }
       }
-      updateProgress();
-      resetTimer();
     });
     
     renderChannels();
-    
-    // Automatically trigger the first channel and play it immediately
-    await selectChannel(0);
-    shakaVideo.play().catch(e => console.log("Auto-play initiated."));
+    selectChannel(0);
 
     document.getElementById('aspect-regulator').addEventListener('change', (e) => {
       const val = e.target.value;
@@ -595,6 +555,12 @@ header {
       clapprCont.classList.remove('clappr-stretch', 'clappr-zoom');
       if(val === 'stretch') { shakaVideo.classList.add('shaka-stretch'); clapprCont.classList.add('clappr-stretch'); }
       if(val === 'zoom') { shakaVideo.classList.add('shaka-zoom'); clapprCont.classList.add('clappr-zoom'); }
+      resetTimer();
+    });
+
+    document.getElementById('pad-regulator').addEventListener('change', (e) => {
+      const val = e.target.value;
+      document.getElementById('clappr-player-container').classList.toggle('clappr-padded', val === 'padded');
       resetTimer();
     });
 
@@ -629,11 +595,18 @@ header {
 
   async function selectChannel(index) {
     const ch = CHANNELS[index];
-    if (ch.type === "redirect") { window.open(ch.url, '_blank'); return; }
+    
+    // REDIRECT OPTION: If channel type is redirect, open in new page and stop
+    if (ch.type === "redirect") {
+      window.open(ch.url, '_blank');
+      return;
+    }
+
     activeChannelIndex = index;
     const clapprWrapper = document.getElementById('clappr-player-container');
     const shakaWrapper = document.getElementById('shaka-container');
     const qualitySelect = document.getElementById('quality-regulator');
+    
     qualitySelect.innerHTML = '<option value="auto">AUTO QUALITY</option>';
     clapprPlayer.pause();
     if (shakaInstance) await shakaInstance.unload();
@@ -641,12 +614,23 @@ header {
     
     if (ch.player === "shaka" || ch.player === "hls") {
       clapprWrapper.style.display = 'none'; shakaWrapper.style.display = 'block';
+      
       if (ch.player === "hls" && Hls.isSupported()) {
-          hlsInstance = new Hls({ enableLowLatencyMode: true, initialLiveManifestSize: 1, liveSyncDuration: 2, maxBufferLength: 30, maxMaxBufferLength: 45 });
-          hlsInstance.loadSource(ch.url); hlsInstance.attachMedia(shakaVideo); 
+          hlsInstance = new Hls({
+              enableLowLatencyMode: true,
+              initialLiveManifestSize: 1, 
+              liveSyncDuration: 2,
+              maxBufferLength: 30,
+              maxMaxBufferLength: 45,
+              fragLoadingMaxRetry: 10,
+              manifestLoadingMaxRetry: 10
+          });
+          hlsInstance.loadSource(ch.url); 
+          hlsInstance.attachMedia(shakaVideo); 
           hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
               hlsInstance.levels.forEach((lvl, i) => {
-                  const opt = document.createElement('option'); opt.value = i;
+                  const opt = document.createElement('option');
+                  opt.value = i;
                   opt.text = lvl.height + "P (" + (lvl.bitrate / 1000000).toFixed(1) + " Mbps)";
                   qualitySelect.appendChild(opt);
               });
@@ -663,7 +647,8 @@ header {
             await shakaInstance.load(ch.url);
             const tracks = shakaInstance.getVariantTracks().sort((a,b) => b.height - a.height);
             tracks.forEach((track, i) => {
-              const opt = document.createElement('option'); opt.value = i;
+              const opt = document.createElement('option');
+              opt.value = i;
               opt.text = `${track.height}P (${(track.bandwidth / 1000000).toFixed(1)} Mbps)`;
               qualitySelect.appendChild(opt);
             });
@@ -671,10 +656,12 @@ header {
       }
     } else {
       shakaWrapper.style.display = 'none'; clapprWrapper.style.display = 'block';
-      clapprPlayer.load(ch.url); clapprPlayer.play();
+      clapprPlayer.load(ch.url);
+      clapprPlayer.play();
     }
     document.getElementById('current-ch-name').innerText = ch.name;
     document.getElementById('current-ch-category').innerText = ch.category;
+    
     renderChannels();
     resetTimer();
   }
@@ -682,18 +669,24 @@ header {
   function renderChannels() {
     const list = document.getElementById('channel-list');
     list.innerHTML = "";
+    
     CHANNELS.forEach((ch, index) => {
       if (activeCategory === "All" || ch.category === activeCategory) {
         const row = document.createElement('div');
+        // Only mark active if it's the currently playing non-redirect channel
         const isActive = (index === activeChannelIndex && ch.type !== 'redirect');
         row.className = `ch-row ${isActive ? 'active' : ''}`;
         row.onclick = () => selectChannel(index);
+        
+        // Removed EXTERNAL label, keeping quality tag for redirect channels
+        const qualityTag = ch.quality || '1080P';
+
         row.innerHTML = `
           <div class="ch-row-art"><img src="${ch.logo}"></div>
           <div class="ch-info" style="flex-grow:1;">
             <div class="ch-name" style="font-size:14px; margin-bottom: 2px;">${ch.name}</div>
             <div class="ch-tags">
-              <span class="tag">${ch.quality || '1080P'}</span>
+              <span class="tag">${qualityTag}</span>
               <span class="tag">${ch.fps || '60 FPS'}</span>
               <span class="tag">${ch.vpn || 'GLOBAL'}</span>
             </div>
